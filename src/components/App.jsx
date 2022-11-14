@@ -59,6 +59,7 @@ export const App = () => {
         setIsLoading(false);
       }
     }
+
     fetchApi();
   }, [searchValue, page]);
 
