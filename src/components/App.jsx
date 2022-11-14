@@ -39,26 +39,25 @@ export const App = () => {
     setPage(prevState => prevState + 1);
   };
 
-  async function fetchApi() {
-    setIsLoading(true);
-
-    try {
-      const results = await fetchImages(searchValue, page);
-
-      const pages = Math.ceil(results.totalHits / 12);
-
-      setImages(prevImg => [...prevImg, ...results.hits]);
-      setPagesLoadMore(pages);
-    } catch (error) {
-      console.log(error);
-    } finally {
-      setIsLoading(false);
-    }
-  }
-
   useEffect(() => {
     if (!searchValue) {
       return;
+    }
+    async function fetchApi() {
+      setIsLoading(true);
+
+      try {
+        const results = await fetchImages(searchValue, page);
+
+        const pages = Math.ceil(results.totalHits / 12);
+
+        setImages(prevImg => [...prevImg, ...results.hits]);
+        setPagesLoadMore(pages);
+      } catch (error) {
+        console.log(error);
+      } finally {
+        setIsLoading(false);
+      }
     }
     fetchApi();
   }, [searchValue, page]);
