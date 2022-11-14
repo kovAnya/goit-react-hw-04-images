@@ -1,4 +1,4 @@
-import React from 'react';
+import { useState, useEffect } from 'react';
 import { Searchbar } from './Searchbar/Searchbar';
 import { ImageGallery } from './ImageGallery/ImageGallery';
 import { Button } from './Button/Button';
@@ -7,87 +7,73 @@ import { Loader } from './Loader/Loader';
 import { Modal } from './Modal/Modal';
 import * as SC from './App.styled';
 
-export class App extends React.Component {
-  state = {
-    images: [],
-    searchValue: '',
-    page: 0,
-    pagesLoadMore: 0,
-    isLoading: false,
-    largeImgUrl: '',
-  };
+export const App = () => {
+  const [images, setImages] = useState([]);
+  const [searchValue, setSearchValue] = useState('');
+  const [page, setPage] = useState(0);
+  const [pagesLoadMore, setPagesLoadMore] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
+  const [largeImgUrl, setLargeImgUrl] = useState('');
 
-  onSubmit = evt => {
+  const onSubmit = evt => {
     evt.preventDefault();
     const form = evt.target;
     const query = form.elements.search.value;
-    this.setState({
-      searchValue: query,
-      page: 1,
-      images: [],
-    });
+    setSearchValue(query);
+    setPage(1);
+    setImages([]);
 
     form.reset();
   };
 
-  onImgClick = evt => {
+  const onImgClick = evt => {
     const largeImgUrl = evt.target.dataset.bigimg;
-    this.setState({ largeImgUrl });
+    setLargeImgUrl(largeImgUrl);
   };
 
-  onCloseModal = () => {
-    this.setState({ largeImgUrl: '' });
+  const onCloseModal = () => {
+    setLargeImgUrl('');
   };
 
-  loadmore = () => {
-    this.setState(prevState => {
-      return {
-        page: prevState.page + 1,
-      };
-    });
+  const loadmore = () => {
+    setPage(prevState => prevState + 1);
   };
 
-  async componentDidUpdate(prevProps, prevState) {
-    if (
-      prevState.searchValue === this.state.searchValue &&
-      prevState.page === this.state.page
-    ) {
-      return;
-    }
-    this.setState({ isLoading: true });
+  async function fetchApi() {
+    setIsLoading(true);
+
     try {
-      const results = await fetchImages(
-        this.state.searchValue,
-        this.state.page
-      );
+      const results = await fetchImages(searchValue, page);
 
       const pages = Math.ceil(results.totalHits / 12);
-      this.setState({
-        images: [...this.state.images, ...results.hits],
-        pagesLoadMore: pages,
-      });
+
+      setImages(prevImg => [...prevImg, ...results.hits]);
+      setPagesLoadMore(pages);
     } catch (error) {
       console.log(error);
     } finally {
-      this.setState({ isLoading: false });
+      setIsLoading(false);
     }
   }
 
-  render() {
-    return (
-      <SC.App>
-        <Searchbar onSubmit={this.onSubmit} />
-        {this.state.isLoading && <Loader />}
-        <ImageGallery images={this.state.images} onImgClick={this.onImgClick} />
-        {this.state.page < this.state.pagesLoadMore && (
-          <Button onClick={this.loadmore} />
-        )}
-        {this.state.largeImgUrl.length > 0 && (
-          <Modal onClose={this.onCloseModal}>
-            <img src={this.state.largeImgUrl} alt="" />
-          </Modal>
-        )}
-      </SC.App>
-    );
-  }
-}
+  useEffect(() => {
+    if (!searchValue) {
+      return;
+    }
+    fetchApi();
+  }, [searchValue, page]);
+
+  return (
+    <SC.App>
+      <Searchbar onSubmit={onSubmit} />
+      {isLoading && <Loader />}
+      <ImageGallery images={images} onImgClick={onImgClick} />
+      {page < pagesLoadMore && <Button onClick={loadmore} />}
+      {largeImgUrl.length > 0 && (
+        <Modal onClose={onCloseModal}>
+          <img src={largeImgUrl} alt="" />
+        </Modal>
+      )}
+    </SC.App>
+  );
+};
