@@ -4,7 +4,7 @@ import { ImageGallery } from './ImageGallery/ImageGallery';
 import { Button } from './Button/Button';
 import { fetchImages } from './API/Api';
 import { Loader } from './Loader/Loader';
-import { Modal } from './Modal/Modal';
+import Modal from './Modal/Modal';
 import * as SC from './App.styled';
 
 export const App = () => {
